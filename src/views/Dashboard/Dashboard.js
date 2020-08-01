@@ -108,7 +108,7 @@ const Dashboard = (props) => {
 
   const getOrderDetail = async () => {
 
-    await axios.post('http://3.15.25.220:5000/detail', {
+    await axios.post('http://18.219.44.193:5000/detail', {
       order_id : activeOrderList[selectedOrder]['Order ID'],
     })
       .then(response => {
@@ -145,7 +145,7 @@ const Dashboard = (props) => {
   //fetch active order list data
   useEffect(() => {
     console.log('useEffect called')
-    axios.post('http://3.15.25.220:5000/activeorder',{
+    axios.post('http://18.219.44.193:5000/activeorder',{
       user_id : user_id,
     })
       .then(res => {
@@ -170,7 +170,7 @@ const Dashboard = (props) => {
    if(activeOrderList.length === 0 || selectedOrder === undefined || showDetail === true) {return;}
    const tracking_id=activeOrderList[selectedOrder]['Tracking ID'];
    // console.log('tracking_id',tracking_id)
-   await axios.post('http://3.15.25.220:5000/tracking',{
+   await axios.post('http://18.219.44.193:5000/tracking',{
      tracking_id : tracking_id
    })
      .then(res => {

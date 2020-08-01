@@ -207,7 +207,7 @@ const SignUp = props => {
     event.preventDefault();
     history.push('/sign-in');
     console.log(formState.values);
-    axios.post('http://3.15.25.220:5000/register', {
+    axios.post('http://18.219.44.193:5000/register', {
       "user_id": formState.values.username,
       "password": formState.values.password,
       "last_name": formState.values.lastName,
