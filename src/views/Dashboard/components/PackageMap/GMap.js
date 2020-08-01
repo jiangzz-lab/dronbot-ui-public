@@ -1,5 +1,5 @@
+/*global google*/
 import React, { Component } from 'react'
-import {Map, InfoWindow, Marker, GoogleApiWrapper} from 'google-maps-react';
 import RedRob from './RedRob.svg'
 import blueMarker from './blue-marker.svg'
 import drone from './drone.png'
@@ -8,80 +8,143 @@ import customStyles from './customStlyes.css'
 import Tooltip from '@material-ui/core/Tooltip';
 import Button from '@material-ui/core/Button';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
-export class GMap extends Component {
+
+import {
+  withScriptjs,
+  withGoogleMap,
+  GoogleMap,
+  DirectionsRenderer,
+  Marker,
+  InfoWindow
+} from "react-google-maps";
+
+class Route extends React.Component {
+  state = {
+    directions: null,
+    error: null
+  };
+
+  componentDidMount() {
+    const desLocation  = this.props.deslocation;
+    const origin = this.props.location;
+
+    const directionsService = new google.maps.DirectionsService();
+    directionsService.route(
+      {
+        origin: origin,
+        destination: desLocation,
+        travelMode: google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === google.maps.DirectionsStatus.OK) {
+          this.setState({
+            directions: result
+          });
+        } else {
+          this.setState({ error: result });
+        }
+      }
+    );
+  }
+
+  render() {
+    if (this.state.error) {
+      return <h1>{this.state.error}</h1>;
+    }
+    return (this.state.directions && <DirectionsRenderer directions={this.state.directions} />)
+  }
+}
+
+export class AroundMap extends Component {
   constructor(props) {
     super(props);
   }
   state = {
-    open: false,
+    isOpen: false,
     // robot: true,
+    directions: null,
   };
-  
+
+  getMapRef = (mapInstance) => {
+    console.log(mapInstance);
+    this.map = mapInstance;
+    window.map = mapInstance;
+  }
+
+  reloadMarker = () => {
+    const center = this.getCenter();
+    const radius = this.getRadius();
+    this.props.loadPostsByTopic(center, radius);
+  }
+
+  getCenter() {
+    const center = this.map.getCenter();
+    console.log(center);
+    return { lat: center.lat(), lon: center.lng() };
+  }
+
+  getRadius() {
+    const center = this.map.getCenter();
+    const bounds = this.map.getBounds();
+    console.log(bounds);
+    if (center && bounds) {
+      const ne = bounds.getNorthEast();
+      const right = new window.google.maps.LatLng(center.lat(), ne.lng());
+      return 0.001 * window.google.maps.geometry.spherical.computeDistanceBetween(center, right);
+    }
+  }
+
   displayMarkers = (locations) => {
     // const { robot } = this.state;
-
-    if (this.props.info != undefined) {
-      if ((this.props.info['machine type'] === 'robot')) {
-        return locations.map((store, index) => {
-          return <Tooltip title="Your Package is getting closer! " placement="right">
-            <Marker key={index} id={index} position={{
+    if ((this.props.info && this.props.info['machine type'] === 'robot')) {
+      return locations.map((store, index) => {
+        return <Tooltip title="Your Package is getting closer! " placement="right">
+          <Marker key={index} id={index} position={{
             lat: store.lat,
             lng: store.lng
           }}
-          icon={{
-            url: RedRob,
-            scaledSize: new window.google.maps.Size(35,35),
-          }}
-          onClick={() => console.log("You clicked me!")} />
-          </Tooltip>
-        })
-      } else {return locations.map((store, index) => {
+                  icon={{
+                    url: RedRob,
+                    scaledSize: new window.google.maps.Size(35,35),
+                  }}
+                  onClick={() => console.log("You clicked me!")} />
+        </Tooltip>
+      })
+    } else {
+      return locations.map((store, index) => {
         return <Tooltip title="Your Package is getting closer! " placement="right">
           <Marker key={index} id={index} position={{
-          lat: store.lat,
-          lng: store.lng
-        }}
-        icon={{
-          url: drone,
-          scaledSize: new window.google.maps.Size(30,30),
-        }}
-      onClick={() => console.log("You clicked me!")} />
-      </Tooltip>
-      })}
+            lat: store.lat,
+            lng: store.lng
+          }}
+                  icon={{
+                    url: drone,
+                    scaledSize: new window.google.maps.Size(30,30),
+                  }}
+                  onClick={() => console.log("You clicked me!")} />
+        </Tooltip>
+      })
     }
-    
   }
-  //customized map style 
+
   _mapLoaded(mapProps, map) {
     map.setOptions({
       styles: mapStyles
     })
   }
-  handleTooltipClose = () => {
-    this.setState({ open: false });
-  };
 
-  handleTooltipOpen = () => {
-    this.setState({ open: true });
-  };
-
-  // machingType = () => {
-  //   this.setState({ robot:((this.props.info['machine type'] === 'robot') ? true : false )});
-  // };
+  handleToggle = () => {
+    this.setState((prevState) => ({ isOpen: !prevState.isOpen }));
+  }
 
   render() {
-
-    // console.log('info[machine type] -->', this.props.info['machine type']);
-
-    
     const mapStyles = {
       width: '100%',
       height: '100%'
     }
+
     const { info } = this.props;
-    // console.log('info[machine type] -->', info['machine type']);
     console.log('GMap info -->', info);
-  //  console.log('tracking info GMap-->', info);
     let locationString = [];
     if (info && info['current location'] != undefined) {
       locationString = info['current location'].split(',');
@@ -97,51 +160,51 @@ export class GMap extends Component {
     if (info && info['destination'] != undefined) {
       desLocationString = info['destination'].split(',');
     }
-    // const locationString = info['current location'].split(',');
     const desLocation = {
-      desLat: parseFloat(desLocationString[0]),
-      desLng: parseFloat(desLocationString[1]),
+      lat: parseFloat(desLocationString[0]),
+      lng: parseFloat(desLocationString[1]),
     };
     console.log('desLocation -->', desLocation);
-    // console.log('robot -->', this.robot);
 
     return (
       <div>
-        <customHead>
-        Dronbot{" "} 
-          {/* <span role = "img" aria-label = "robot" >
-          🤖️📦
-        </span> */}
-        </customHead>
-        <Map
-          google={this.props.google}
-          zoom={12}
-          style={mapStyles}
-          disableDefaultUI={true}//remove the default upper left coner MAP Satellite switch
-          zoomControl={true}
-          initialCenter={{ lat: 37.765, lng: -122.44}}
-          onReady={(mapProps, map) => this._mapLoaded(mapProps, map)}
+        <GoogleMap
+          defaultZoom={11}
+          defaultCenter={{ lat: 37.765, lng: -122.44 }}
         >
-          {/* <Marker position={{ lat: 48.00, lng: -122.00}} /> */}
+          {
+            isNaN(location.lat) || isNaN(location.lng) || isNaN(desLocation.lat) || isNaN(desLocation.lng) ? null :
+              <Route location={location} deslocation={desLocation}/>
+          }
           {this.displayMarkers([location])}
+          <Marker
+            position={{lat: desLocation.lat, lng: desLocation.lng}}
+            onMouseOver={this.handleToggle}
+            onMouseOut={this.handleToggle}
+            onClick={this.handleToggle}
 
-          <Tooltip title="This is Destination. Carrier is on the way. " placement="right">
-            <Marker
-              position={{lat: desLocation.desLat, lng: desLocation.desLng}}
-              icon={{
-                url: blueMarker,
-                scaledSize: new window.google.maps.Size(20,35),
-              }} 
-              onClick={this.handleTooltipOpen}
-            />
-          </Tooltip>
-        </Map>
+            icon={{
+              url: blueMarker,
+              scaledSize: new window.google.maps.Size(20,35),
+            }}
+            onClick={this.handleToggle}
+          >
+            {this.state.isOpen ? (
+              <InfoWindow>
+                <div>
+                  <h3>This is Destination. Carrier is on the way.</h3>
+                </div>
+              </InfoWindow>
+            ) : null}
+          </Marker>
+        </GoogleMap>
+
       </div>
     );
-    
+
   }
 }
- 
-export default GoogleApiWrapper({
-  apiKey: ('AIzaSyD3CEh9DXuyjozqptVB5LA-dN7MxWWkr9s')
-})(GMap)
+
+const GMap = withScriptjs(withGoogleMap(AroundMap));
+
+export default GMap;

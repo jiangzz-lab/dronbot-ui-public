@@ -7,7 +7,7 @@ import GMap from './GMap'
 
 const useStyles = makeStyles(() => ({
   root: {
-    height: 388,
+    height: 393,
     position: 'relative',
     margin: 'auto',
     paddingTop: 0,
@@ -15,13 +15,25 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const PackageMap = props => {
+const googleMapsApiKey = "AIzaSyBdIJ5MrQ4rwNhyx52hGx2J3KDwftrGps0";
 
+const PackageMap = props => {
   const classes = useStyles();
   const { info } = props;
+  console.log('BBB', info)
   return (
     <div className={classes.root}>
-      <GMap info={info}/>
+      <GMap
+        googleMapURL={
+          'https://maps.googleapis.com/maps/api/js?key=' +
+          googleMapsApiKey +
+          '&libraries=geometry,drawing,places'
+        }
+        loadingElement={<div style={{ height: `100%` }} />}
+        containerElement={<div style={{ height: `600px` }} />}
+        mapElement={<div style={{ height: `100%` }} />}
+        info = {info}
+      />
     </div>
   );
 };
