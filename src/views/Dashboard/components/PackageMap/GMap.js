@@ -35,7 +35,7 @@ class Route extends React.Component {
     const request = {
       origin: origin,
       destination: destination,
-      travelMode: google.maps.TravelMode.WALKING,
+      travelMode: google.maps.TravelMode.DRIVING,
     };
 
     const directionsService = new google.maps.DirectionsService();

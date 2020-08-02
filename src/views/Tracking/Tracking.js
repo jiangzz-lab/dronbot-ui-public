@@ -1,8 +1,7 @@
 import React, {useState, useEffect}from 'react';
 import PackageMap from '../Dashboard/components/PackageMap';
 import TrackingBar from '../Dashboard/components/TrackingBar';
-import TimeStamp from '../Dashboard/components/TimeStamp';
-import OrderDetail from '../UserList/components/OrderDetail';
+
 import {
   Box,
   Card,
@@ -41,17 +40,11 @@ const Tracking = (props) => {
   // console.log(props.match);
 
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [trackingInfo, setTrackingInfo] = useState({
-    "current location": "37.76009460,-122.41483030",
-    "estimated delivered time": "2020-07-31 16:07:44",
-    "delay": false,
-    "destination": "37.78674750,-122.47985860",
-    "status": "in transit"
-  });
+  const [trackingInfo, setTrackingInfo] = useState(undefined);
 
   const orderNumber = params.id;
-  const status = trackingInfo['status'];
-  const delay = trackingInfo['delay'];
+  const status = trackingInfo && trackingInfo['status'] ? trackingInfo['status'] : undefined;
+  const delay = trackingInfo && trackingInfo['delay'] ? trackingInfo['delay'] : undefined;
 
   const getTrackingInfo = async () => {
     await axios.post('http://18.219.44.193:5000/tracking',{
