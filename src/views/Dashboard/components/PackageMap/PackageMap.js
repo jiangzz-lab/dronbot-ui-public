@@ -22,7 +22,7 @@ const googleMapsApiKey = "AIzaSyBdIJ5MrQ4rwNhyx52hGx2J3KDwftrGps0";
 
 const PackageMap = props => {
   const classes = useStyles();
-  const { info } = props;
+  const { info , selected } = props;
   console.log('BBB', info)
   return (
     <div className={classes.root}>

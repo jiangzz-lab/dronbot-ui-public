@@ -1,5 +1,5 @@
 /*global google*/
-import React, { Component } from 'react'
+import React, { Component, useEffect, useState } from 'react';
 import RedRob from './RedRob.svg'
 import blueMarker from './blue-marker.svg'
 import drone from './drone.png'
@@ -17,21 +17,16 @@ import {
   Marker,
   InfoWindow,
   Polyline,
-} from "react-google-maps";
+} from 'react-google-maps';
 
-class Route extends React.Component {
-  constructor(props){
-    super(props);
-    this.state = {
-      directions: null,
-      error: null
-    };
-    this.getRoute = this.getRoute.bind(this);
-  }
+const Route = (props) => {
+  const { location, deslocation } = props;
+  const [directions, setDirections] = useState(null);
+  const [error, setError] = useState(null);
 
-  getRoute = () => {
-    const destination  = this.props.deslocation;
-    const origin = this.props.location;
+  const getRoute = () => {
+    const destination  = deslocation;
+    const origin = location;
     const request = {
       origin: origin,
       destination: destination,
@@ -42,59 +37,35 @@ class Route extends React.Component {
     directionsService.route(
       request, (result, status) => {
         if (status === google.maps.DirectionsStatus.OK) {
-          this.setState({
-            directions: result
-          });
-
+          setDirections(result);
         } else {
-          this.setState({ error: result });
+          setError(result);
         }
       });
   }
 
-  componentDidMount() {
-    this.getRoute();
-    this.routeTimer = setInterval(
-      () => this.getRoute(),
+  /*useEffect(() => {
+    const routerTimer = setInterval(
+      getRoute,
       60 * 1000
     );
+    return clearInterval(routerTimer);
+  },[])*/
+
+  useEffect(() => {
+    getRoute();
+  },[location, deslocation])
+
+  if (error) {
+    return <h1>{error}</h1>;
   }
+  return (directions && <DirectionsRenderer
+    directions={directions}
+    options={{
+      markerOptions: {visible : false}
+    }}
+                        />)
 
-  componentWillMount() {
-    clearInterval(this.routeTimer);
-  }
-
-  /* componentDidUpdate() {
-
-     const directionsService = new google.maps.DirectionsService();
-     directionsService.route(
-       {
-         origin: origin,
-         destination: desLocation,
-         travelMode: google.maps.TravelMode.DRIVING,
-       },
-       (result, status) => {
-         if (status === google.maps.DirectionsStatus.OK) {
-           this.setState({
-             directions: result
-           });
-         } else {
-           this.setState({ error: result });
-         }
-       }
-     );
-   } */
-
-  render() {
-    if (this.state.error) {
-      return <h1>{this.state.error}</h1>;
-    }
-    return (this.state.directions && <DirectionsRenderer
-      options={{
-        markerOptions: {visible : false}
-      }}
-      directions={this.state.directions} />)
-  }
 }
 
 export class AroundMap extends Component {
@@ -102,8 +73,8 @@ export class AroundMap extends Component {
     super(props);
   }
   state = {
-    isOpen: false,
-    // robot: true,
+    isDesOpen: false,
+    isCarrierOpen: false,
     directions: null,
   };
 
@@ -111,31 +82,58 @@ export class AroundMap extends Component {
     // const { robot } = this.state;
     if ((this.props.info && this.props.info['machine type'] === 'robot')) {
       return locations.map((store, index) => {
-        return <Tooltip title="Your Package is getting closer! " placement="right">
-          <Marker key={index} id={index} position={{
-            lat: store.lat,
-            lng: store.lng
-          }}
-                  icon={{
-                    url: RedRob,
-                    scaledSize: new window.google.maps.Size(35,35),
-                  }}
-                  onClick={() => console.log("You clicked me!")} />
-        </Tooltip>
+        return <div>
+          <Marker 
+            icon={{
+              url: RedRob,
+              scaledSize: new window.google.maps.Size(35,35),
+            }} 
+            id={index} 
+            key={index}
+            onMouseOut={this.handleToggleCarrier}
+            onMouseOver={this.handleToggleCarrier}
+            position={{
+              lat: store.lat,
+              lng: store.lng
+            }}
+          >
+            {this.state.isCarrierOpen ? (
+              <InfoWindow>
+                <div>
+                  <h3>I am carrying your package!</h3>
+                </div>
+              </InfoWindow>
+            ) : null}
+        </Marker>
+        </div>
       })
     } else {
       return locations.map((store, index) => {
-        return <Tooltip title="Your Package is getting closer! " placement="right">
-          <Marker key={index} id={index} position={{
-            lat: store.lat,
-            lng: store.lng
-          }}
-                  icon={{
-                    url: drone,
-                    scaledSize: new window.google.maps.Size(30,30),
-                  }}
-                  onClick={() => console.log("You clicked me!")} />
-        </Tooltip>
+        return <div>
+          <Marker
+            icon={{
+              url: drone,
+              scaledSize: new window.google.maps.Size(30,30),
+            }}
+            id={index}
+            key={index}
+            onClick={this.handleToggleCarrier}
+            onMouseOut={this.handleToggleCarrier}
+            onMouseOver={this.handleToggleCarrier}
+            position={{
+              lat: store.lat,
+              lng: store.lng
+            }}
+          >
+            {this.state.isCarrierOpen ? (
+              <InfoWindow>
+                <div>
+                  <h3>I am carrying your package!</h3>
+                </div>
+              </InfoWindow>
+            ) : null}
+          </Marker>
+        </div>
       })
     }
   }
@@ -146,8 +144,12 @@ export class AroundMap extends Component {
     })
   }
 
-  handleToggle = () => {
-    this.setState((prevState) => ({ isOpen: !prevState.isOpen }));
+  handleToggleDes = () => {
+    this.setState((prevState) => ({ isDesOpen: !prevState.isDesOpen }));
+  }
+
+  handleToggleCarrier = () => {
+    this.setState((prevState) => ({ isCarrierOpen: !prevState.isCarrierOpen }));
   }
 
   render() {
@@ -182,33 +184,34 @@ export class AroundMap extends Component {
     return (
       <div>
         <GoogleMap
-          zoom={12}
           defaultCenter={{ lat: 37.765, lng: -122.44 }}
+          zoom={12}
         >
           {
             isNaN(location.lat) || isNaN(location.lng) || isNaN(desLocation.lat) || isNaN(desLocation.lng) ? null :
               info['machine type'] === 'drone' ? <Polyline
+                options={{strokeColor:'#00FFFF'}}
                 path={[
                   location,
                   desLocation
                 ]}
-                options={{strokeColor:'#00FFFF'}}/> :
-                <Route location={location} deslocation={desLocation}/>
+                                                 /> :
+                <Route
+                  deslocation={desLocation}
+                  location={location}
+                />
           }
           {this.displayMarkers([location])}
           <Marker
-            position={{lat: desLocation.lat, lng: desLocation.lng}}
-            onMouseOver={this.handleToggle}
-            onMouseOut={this.handleToggle}
-            onClick={this.handleToggle}
-
             icon={{
               url: blueMarker,
               scaledSize: new window.google.maps.Size(20,35),
             }}
-            onClick={this.handleToggle}
+            onMouseOut={this.handleToggleDes}
+            onMouseOver={this.handleToggleDes}
+            position={{lat: desLocation.lat, lng: desLocation.lng}}
           >
-            {this.state.isOpen ? (
+            {this.state.isDesOpen ? (
               <InfoWindow>
                 <div>
                   <h3>This is Destination. Carrier is on the way.</h3>

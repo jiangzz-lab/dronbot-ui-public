@@ -242,7 +242,10 @@ const Dashboard = (props) => {
                   item
                   xl={12}
                 >
-                  {showDetail ? renderOrderDetail(): <PackageMap info={trackingInfo}/>}
+                  {showDetail ? renderOrderDetail(): <PackageMap
+                    info={trackingInfo}
+                    selected={selectedOrder}
+                  />}
                 </Grid>
               </Grid>
             </CardContent>
@@ -277,8 +280,9 @@ const Dashboard = (props) => {
             <Divider />
             <CardContent className={classes.cardContent}>
               <TimeStamp
-              total={totalTimeMin}
-              left={timeLeftMin}/>
+                info={trackingInfo}
+                total={totalTimeMin}
+                left={timeLeftMin}/>
               <ActiveOrderList 
                 style={{height:285, overflow: 'auto'}}
                 list={activeOrderList}

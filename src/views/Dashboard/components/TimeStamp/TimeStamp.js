@@ -79,14 +79,14 @@ function CircularProgressWithLabel(props) {
 
 
 const TimeStamp = props => {
-  const { total, left, className, ...rest } = props;
+  const { info, total, left, className, ...rest } = props;
   const classes = useStyles();
 
   const getTimerMessage = () => {
     if (isNaN(total) || isNaN(left)) {
       return <div className={classes.time}> Delivery time will be available shortly after the package get dispatched</div>;
     }
-    if (left <= 0) {
+    if ( info && info['status'] === 'delivered' && left <= 0) {
       return <div className={classes.deliveryMessage}>Delivered</div>
     }
     return <CircularProgressWithLabel value={100 - Math.floor(left/total*100)} left={left}/>
