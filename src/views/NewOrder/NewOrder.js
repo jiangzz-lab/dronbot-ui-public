@@ -12,7 +12,7 @@ const NewOrder = () => {
 
   useEffect(() => {
     const generateStripePromise = async () => {
-      await axios.get('http://3.15.25.220:5000/stripe-key')
+      await axios.get('http://18.219.44.193:5000/stripe-key')
         .then(async response => {
           const data = response.data;
           console.log(data);

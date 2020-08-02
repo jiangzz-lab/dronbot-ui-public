@@ -54,7 +54,7 @@ const Tracking = (props) => {
   const delay = trackingInfo['delay'];
 
   const getTrackingInfo = async () => {
-    await axios.post('http://3.15.25.220:5000/tracking',{
+    await axios.post('http://18.219.44.193:5000/tracking',{
       tracking_id :  orderNumber,
     })
       .then(res => {

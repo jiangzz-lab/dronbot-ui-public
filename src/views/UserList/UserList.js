@@ -69,7 +69,7 @@ const UserList = (props) => {
 
   async function getOrderHistory() {
     const user_id = localStorage.getItem('userID');
-    axios.post('http://3.15.25.220:5000/history', {
+    axios.post('http://18.219.44.193:5000/history', {
       user_id : user_id,
     })
       .then(response => {
@@ -92,7 +92,7 @@ const UserList = (props) => {
   }
 
   async function getOrderDetail(orderID) {
-    axios.post('http://3.15.25.220:5000/detail', {
+    axios.post('http://18.219.44.193:5000/detail', {
       order_id : orderID,
       // order_id : 'test1',
     })

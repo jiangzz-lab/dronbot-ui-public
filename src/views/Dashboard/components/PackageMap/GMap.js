@@ -15,43 +15,85 @@ import {
   GoogleMap,
   DirectionsRenderer,
   Marker,
-  InfoWindow
+  InfoWindow,
+  Polyline,
 } from "react-google-maps";
 
 class Route extends React.Component {
-  state = {
-    directions: null,
-    error: null
-  };
+  constructor(props){
+    super(props);
+    this.state = {
+      directions: null,
+      error: null
+    };
+    this.getRoute = this.getRoute.bind(this);
+  }
 
-  componentDidMount() {
-    const desLocation  = this.props.deslocation;
+  getRoute = () => {
+    const destination  = this.props.deslocation;
     const origin = this.props.location;
+    const request = {
+      origin: origin,
+      destination: destination,
+      travelMode: google.maps.TravelMode.WALKING,
+    };
 
     const directionsService = new google.maps.DirectionsService();
     directionsService.route(
-      {
-        origin: origin,
-        destination: desLocation,
-        travelMode: google.maps.TravelMode.DRIVING,
-      },
-      (result, status) => {
+      request, (result, status) => {
         if (status === google.maps.DirectionsStatus.OK) {
           this.setState({
             directions: result
           });
+
         } else {
           this.setState({ error: result });
         }
-      }
+      });
+  }
+
+  componentDidMount() {
+    this.getRoute();
+    this.routeTimer = setInterval(
+      () => this.getRoute(),
+      60 * 1000
     );
   }
+
+  componentWillMount() {
+    clearInterval(this.routeTimer);
+  }
+
+  /* componentDidUpdate() {
+
+     const directionsService = new google.maps.DirectionsService();
+     directionsService.route(
+       {
+         origin: origin,
+         destination: desLocation,
+         travelMode: google.maps.TravelMode.DRIVING,
+       },
+       (result, status) => {
+         if (status === google.maps.DirectionsStatus.OK) {
+           this.setState({
+             directions: result
+           });
+         } else {
+           this.setState({ error: result });
+         }
+       }
+     );
+   } */
 
   render() {
     if (this.state.error) {
       return <h1>{this.state.error}</h1>;
     }
-    return (this.state.directions && <DirectionsRenderer directions={this.state.directions} />)
+    return (this.state.directions && <DirectionsRenderer
+      options={{
+        markerOptions: {visible : false}
+      }}
+      directions={this.state.directions} />)
   }
 }
 
@@ -64,35 +106,6 @@ export class AroundMap extends Component {
     // robot: true,
     directions: null,
   };
-
-  getMapRef = (mapInstance) => {
-    console.log(mapInstance);
-    this.map = mapInstance;
-    window.map = mapInstance;
-  }
-
-  reloadMarker = () => {
-    const center = this.getCenter();
-    const radius = this.getRadius();
-    this.props.loadPostsByTopic(center, radius);
-  }
-
-  getCenter() {
-    const center = this.map.getCenter();
-    console.log(center);
-    return { lat: center.lat(), lon: center.lng() };
-  }
-
-  getRadius() {
-    const center = this.map.getCenter();
-    const bounds = this.map.getBounds();
-    console.log(bounds);
-    if (center && bounds) {
-      const ne = bounds.getNorthEast();
-      const right = new window.google.maps.LatLng(center.lat(), ne.lng());
-      return 0.001 * window.google.maps.geometry.spherical.computeDistanceBetween(center, right);
-    }
-  }
 
   displayMarkers = (locations) => {
     // const { robot } = this.state;
@@ -169,12 +182,18 @@ export class AroundMap extends Component {
     return (
       <div>
         <GoogleMap
-          defaultZoom={11}
+          zoom={12}
           defaultCenter={{ lat: 37.765, lng: -122.44 }}
         >
           {
             isNaN(location.lat) || isNaN(location.lng) || isNaN(desLocation.lat) || isNaN(desLocation.lng) ? null :
-              <Route location={location} deslocation={desLocation}/>
+              info['machine type'] === 'drone' ? <Polyline
+                path={[
+                  location,
+                  desLocation
+                ]}
+                options={{strokeColor:'#00FFFF'}}/> :
+                <Route location={location} deslocation={desLocation}/>
           }
           {this.displayMarkers([location])}
           <Marker
