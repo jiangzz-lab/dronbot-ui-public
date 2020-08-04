@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 
 import GMap from './GMap'
+import { GMAP_API_KEY } from '../../../../constants';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -18,18 +19,16 @@ const useStyles = makeStyles(() => ({
   }
 }));
 
-const googleMapsApiKey = "AIzaSyBdIJ5MrQ4rwNhyx52hGx2J3KDwftrGps0";
-
 const PackageMap = props => {
   const classes = useStyles();
-  const { info , selected } = props;
+  const { info } = props;
   console.log('BBB', info)
   return (
     <div className={classes.root}>
       <GMap
         googleMapURL={
           'https://maps.googleapis.com/maps/api/js?key=' +
-          googleMapsApiKey +
+          GMAP_API_KEY +
           '&libraries=geometry,drawing,places'
         }
         loadingElement={<div style={{ height: `100%` }} />}

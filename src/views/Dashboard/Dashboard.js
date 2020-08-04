@@ -15,6 +15,7 @@ import {
 } from '@material-ui/core';
 
 import axios from 'axios';
+import { NODE_ROOT_URL } from '../../constants';
 
 import {
   ActiveOrderList,
@@ -108,7 +109,7 @@ const Dashboard = (props) => {
 
   const getOrderDetail = async () => {
 
-    await axios.post('http://18.219.44.193:5000/detail', {
+    await axios.post(`${NODE_ROOT_URL}/detail`, {
       order_id : activeOrderList[selectedOrder]['Order ID'],
     })
       .then(response => {
