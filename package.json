@@ -34,7 +34,7 @@
     "@stripe/react-stripe-js": "^1.1.2",
     "@stripe/stripe-js": "^1.8.0",
     "axios": "^0.19.2",
-    "chart.js": "^2.8.0",
+    "chart.js": "^2.9.4",
     "clsx": "^1.0.4",
     "dotenv": "^8.2.0",
     "google-distance-matrix": "^1.1.1",
